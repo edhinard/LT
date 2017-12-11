@@ -74,7 +74,7 @@ class MyHTMLParser(html.parser.HTMLParser):
     def writetext(self, before=None, after=None, text=None):
         if text is None:
             text = ''.join(self.texts).replace('\n', ' ')
-        if text:
+        if text.strip():
             self.doc.write("{}{}{}".format(before or '', text, after or ''))
             self.texts = []
         
@@ -103,7 +103,7 @@ class MyHTMLParser(html.parser.HTMLParser):
             self.writetext('\\chapter{', '}\n')
         
         elif tag == 'h2':
-            self.writetext('\\subchapter{', '}\n')
+            self.writetext('\\section{', '}\n')
         
         elif tag == 'p':
             self.writetext('', '\n\n')
@@ -126,7 +126,7 @@ class MyHTMLParser(html.parser.HTMLParser):
             self.writetext('\\emph{', '}')
 
         elif tag == 'strong':
-            self.writetext('\\strong{', '}')
+            self.writetext('{\\bf ', '}')
 
         elif tag == 'li':
             self.writetext(' * ', '\n')
@@ -145,4 +145,6 @@ class MyHTMLParser(html.parser.HTMLParser):
     def handle_data(self, data):
         self.texts.append(data)
 
-MyHTMLParser('livre.txt').feed(doc)
+open('toto.txt','w').write(doc)
+        
+MyHTMLParser('livre.tex').feed(doc)
