@@ -65,12 +65,18 @@ else:
 
 
 class MyHTMLParser(html.parser.HTMLParser):
-    def __init__(self, name):
+    def __init__(self):
         html.parser.HTMLParser.__init__(self)
-        self.doc = open(name, 'w', encoding='utf-8')
+        self.numdoc = 0
+        self.opendoc()
         self.levels = []
         self.texts = []
 
+    def opendoc(self):
+        self.doc = open('chapitres/auto/chap{:02}.tex'.format(self.numdoc), 'w', encoding='utf-8')
+        self.numdoc += 1
+
+        
     def writetext(self, before=None, after=None, text=None):
         if text is None:
             text = ''.join(self.texts).replace('\n', ' ')
@@ -100,6 +106,7 @@ class MyHTMLParser(html.parser.HTMLParser):
 
     def handle_endtag(self, tag):
         if tag == 'h1':
+            self.opendoc()
             self.writetext('\\chapter{', '}\n')
         
         elif tag == 'h2':
@@ -145,6 +152,6 @@ class MyHTMLParser(html.parser.HTMLParser):
     def handle_data(self, data):
         self.texts.append(data)
 
-open('toto.txt','w').write(doc)
+#open('toto.txt','w').write(doc)
         
-MyHTMLParser('livre.tex').feed(doc)
+MyHTMLParser().feed(doc)
