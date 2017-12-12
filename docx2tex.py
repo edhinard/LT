@@ -12,6 +12,7 @@
 #        chap.write('\chapter{{{}}}\n'.format(title))
 
 import sys
+import glob
 import shutil
 import os
 import re
@@ -21,17 +22,16 @@ import warnings
 
 import mammoth
 
-#shutil.rmtree('result', ignore_errors=True)
-#os.mkdir('result')
 
 style_map = """
+p[style-name='Récit'] => story:fresh
 p[style-name='footnote text'] => ft
 r[style-name='footnote reference'] => fr
-p[style-name='endnote text'] => et
-r[style-name='endnote reference'] => er
 """
+#p[style-name='endnote text'] => et
+#r[style-name='endnote reference'] => er
 
-with open('livre.docx', 'rb') as docx_file:
+with open(sys.argv[1], 'rb') as docx_file:
     result = mammoth.convert_to_html(docx_file, style_map=style_map)
 for m in result.messages:
     print(m)
@@ -64,15 +64,30 @@ else:
         footnotes[num] = note
 
 
-class MyHTMLParser(html.parser.HTMLParser):
-    def __init__(self):
+class Html2Tex(html.parser.HTMLParser):
+    def __init__(self, htmldoc, resultdir):
         html.parser.HTMLParser.__init__(self)
         self.numdoc = 0
+        self.doc = None
         self.opendoc()
         self.levels = []
         self.texts = []
 
+        for autofile in glob.glob(os.path.join(resultdir, 'auto', '*.tex')):
+            os.remove(autofile)
+        self.feed(htmldoc)
+        if self.doc:
+            self.doc.close()
+        for autofile in glob.glob(os.path.join(resultdir, 'auto', '*.tex')):
+            basename = os.path.basename(autofile)
+            modiffile = os.path.join(resultdir, 'modif', basename)
+            reffile = os.path.join(os.pardir, 'auto', basename)
+            if not os.path.exists(modiffile):
+                os.symlink(reffile, modiffile)
+            
     def opendoc(self):
+        if self.doc:
+            self.doc.close()
         self.doc = open('chapitres/auto/chap{:02}.tex'.format(self.numdoc), 'w', encoding='utf-8')
         self.numdoc += 1
 
@@ -114,6 +129,9 @@ class MyHTMLParser(html.parser.HTMLParser):
         
         elif tag == 'p':
             self.writetext('', '\n\n')
+        
+        elif tag == 'story':
+            self.writetext('\\story{', '}\n')
 
         elif tag == 'fr':
             if self.notenum is not None:
@@ -152,6 +170,5 @@ class MyHTMLParser(html.parser.HTMLParser):
     def handle_data(self, data):
         self.texts.append(data)
 
-#open('toto.txt','w').write(doc)
-        
-MyHTMLParser().feed(doc)
+open('check.html','w').write(doc)
+Html2Tex(doc, 'chapitres')
