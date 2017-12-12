@@ -32,21 +32,9 @@ r[style-name='footnote reference'] => fr
 #r[style-name='endnote reference'] => er
 
 with open(sys.argv[1], 'rb') as docx_file:
-    result = mammoth.convert_to_html(docx_file, style_map=style_map)
+    result = mammoth.convert_to_html(docx_file, style_map=style_map, ignore_empty_paragraphs=False)
 for m in result.messages:
     print(m)
-
-#open('result/livre.html','w').write("""<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
-#  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
-#<html xmlns="http://www.w3.org/1999/xhtml">
-#  <head>
-#    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-#    <title>XXX</title>
-#  </head>
-#  <body>
-#{}
-#  </body>
-#</html>""".format(result.value))
 
 doc,sep,footnotes = result.value.rpartition('<ol>')
 if not footnotes.endswith('</ol>'):
@@ -92,12 +80,14 @@ class Html2Tex(html.parser.HTMLParser):
         self.numdoc += 1
 
         
-    def writetext(self, before=None, after=None, text=None):
+    def writetext(self, before=None, after=None, text=None, ifempty=None):
         if text is None:
-            text = ''.join(self.texts).replace('\n', ' ')
+            text = ''.join(self.texts)
+            self.texts = []
         if text.strip():
             self.doc.write("{}{}{}".format(before or '', text, after or ''))
-            self.texts = []
+        elif ifempty:
+            self.doc.write(ifempty)
         
     def handle_starttag(self, tag, attrs):
         self.writetext()
@@ -128,7 +118,7 @@ class Html2Tex(html.parser.HTMLParser):
             self.writetext('\\section{', '}\n')
         
         elif tag == 'p':
-            self.writetext('', '\n\n')
+            self.writetext('\indent ', '\\\\\n', ifempty='\\blank ')
         
         elif tag == 'story':
             self.writetext('\\story{', '}\n')
