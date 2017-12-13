@@ -23,13 +23,15 @@ import warnings
 import mammoth
 
 
+# ====== docx to html ======
 style_map = """
-p[style-name='Récit'] => story:fresh
+p[style-name='Heading 1'] => chapter:fresh
+p[style-name='Heading 2'] => section:fresh
+p[style-name='Récit'] => story > p:fresh
+
 p[style-name='footnote text'] => ft
 r[style-name='footnote reference'] => fr
 """
-#p[style-name='endnote text'] => et
-#r[style-name='endnote reference'] => er
 
 with open(sys.argv[1], 'rb') as docx_file:
     result = mammoth.convert_to_html(docx_file, style_map=style_map, ignore_empty_paragraphs=False)
@@ -50,115 +52,145 @@ else:
         num = li.attrib['id'][len('footnote-'):]
         note = ''.join(li.itertext()).strip('* ↑\n')
         footnotes[num] = note
+htmldoc = '<html>{}</html>'.format(doc)
 
+
+
+# ====== html to tex ======
+def html2tex(htmldoc, footnotes, resultdir):
+    autodir = os.path.join(resultdir, 'auto')
+    modifdir = os.path.join(resultdir, 'modif')
+    for autofile in glob.glob(os.path.join(autodir, '*.tex')):
+        os.remove(autofile)
+        
+    h2t = Html2Tex(footnotes, autodir)
+    h2t.feed(htmldoc)
+    if footnotes:
+        raise Exception("unused footnote(s):\n{}".format("\n".join(footnotes.values())))
+    
+    print()
+    for filename in h2t.filenames:
+        autofile = os.path.join(autodir, filename)
+        modiffile = os.path.join(modifdir, filename)
+        if os.path.exists(modiffile):
+            print('\\input {}'.format(modiffile))
+            print('%\\input {}'.format(autofile))
+        else:
+            print('\\input {}'.format(autofile))
+        print()    
 
 class Html2Tex(html.parser.HTMLParser):
-    def __init__(self, htmldoc, resultdir):
+    def __init__(self, footnotes, resultdir):
         html.parser.HTMLParser.__init__(self)
-        self.numdoc = 0
-        self.doc = None
-        self.opendoc()
+        self.footnotes = footnotes
+        self.footnote = None
+        self.resultdir = resultdir
         self.levels = []
-        self.texts = []
-
-        for autofile in glob.glob(os.path.join(resultdir, 'auto', '*.tex')):
-            os.remove(autofile)
-        self.feed(htmldoc)
-        if self.doc:
-            self.doc.close()
-        for autofile in glob.glob(os.path.join(resultdir, 'auto', '*.tex')):
-            basename = os.path.basename(autofile)
-            modiffile = os.path.join(resultdir, 'modif', basename)
-            reffile = os.path.join(os.pardir, 'auto', basename)
-            if not os.path.exists(modiffile):
-                os.symlink(reffile, modiffile)
-            
-    def opendoc(self):
-        if self.doc:
-            self.doc.close()
-        self.doc = open('chapitres/auto/chap{:02}.tex'.format(self.numdoc), 'w', encoding='utf-8')
-        self.numdoc += 1
-
-        
-    def writetext(self, before=None, after=None, text=None, ifempty=None):
-        if text is None:
-            text = ''.join(self.texts)
-            self.texts = []
-        if text.strip():
-            self.doc.write("{}{}{}".format(before or '', text, after or ''))
-        elif ifempty:
-            self.doc.write(ifempty)
+        self.chunks = []
+        self.ignoredata = 0
+        self.filenames = []
+        self.doc = None
+        self.numdoc = 0
         
     def handle_starttag(self, tag, attrs):
-        self.writetext()
-        
+        currentlevel = None if not self.levels else self.levels[-1]
+        if (currentlevel in ('part', 'chapter', 'section') and tag != 'a') or\
+           (currentlevel!='html' and tag in ('part', 'chapter', 'section')):
+            raise Exception("unexpected tag <{}> in <{}>".format(tag, currentlevel))
+
         self.levels.append(tag)
-        if tag == 'h1':
-            assert(len(self.levels) == 1)
-        elif tag == 'h2':
-            assert(len(self.levels) == 1)
-        elif tag == 'p':
-            assert(len(self.levels) == 1)
-#        elif tag == 'ul':
-#            self.writetext('', '', '\n\n')
-            assert(len(self.levels) == 1)
-        elif tag == 'fr':
-            assert(len(self.levels) == 2)
-            self.notenum = None
-        elif tag == 'a':
-            if len(self.levels) >= 3 and self.levels[-3] == 'fr':
-                self.notenum = dict(attrs)['id'][len('footnote-ref-'):]
 
-    def handle_endtag(self, tag):
-        if tag == 'h1':
-            self.opendoc()
-            self.writetext('\\chapter{', '}\n')
+        if tag == 'html':
+            pass
         
-        elif tag == 'h2':
-            self.writetext('\\section{', '}\n')
-        
+        elif tag in ('part', 'chapter', 'section', 'story'):
+            if tag in ('part', 'chapter'):
+                self.flush()
+            self.chunks.append('\\{}{{'.format(tag))
+
         elif tag == 'p':
-            self.writetext('\indent ', '\\\\\n', ifempty='\\blank ')
-        
-        elif tag == 'story':
-            self.writetext('\\story{', '}\n')
+            self.chunks.append('\\indent ')
+            
+        elif tag == 'em':
+            self.chunks.append('{\\em ')
+            
+        elif tag == 'strong':
+            self.chunks.append('{\\bf ')
 
         elif tag == 'fr':
-            if self.notenum is not None:
-                footnote = footnotes[self.notenum]
-                self.writetext('\\footnote{', '}', footnote)
-
+            self.ignoredata += 1
+            
         elif tag == 'a':
-            pass
-
-        elif tag == 'ft':
-            pass
+            self.ignoredata += 1
+            if 'fr' in self.levels:
+                notenum = dict(attrs)['id'][len('footnote-ref-'):]
+                try:
+                    self.footnote = self.footnotes.pop(notenum)
+                except:
+                    raise Exception("missing note number {} in footnotes".format(notenum))
 
         elif tag == 'sup':
             pass
-
-        elif tag == 'em':
-            self.writetext('\\emph{', '}')
-
-        elif tag == 'strong':
-            self.writetext('{\\bf ', '}')
-
-        elif tag == 'li':
-            self.writetext(' * ', '\n')
-
-        elif tag == 'ul':
-            self.writetext('', '', '\n\n')
-
-        elif tag == 'br':
-            self.writetext('', '', '\n')
-
+        
         else:
-            raise Exception("tag {} ignored".format(tag))
-
-        self.levels.pop()
+            raise Exception("unexpected tag <{}>".format(tag))
 
     def handle_data(self, data):
-        self.texts.append(data)
+        if not self.ignoredata:
+            self.chunks.append(data)
 
-open('check.html','w').write(doc)
-Html2Tex(doc, 'chapitres')
+    def handle_endtag(self, tag):
+        self.levels.pop()
+        
+        if tag == 'html':
+            self.flush()
+            if self.doc:
+                self.doc.close()
+                self.doc = None
+
+        elif tag in ('part', 'chapter', 'section', 'story'):
+            if tag in ('part', 'chapter'):
+                title = ''.join(self.chunks[1:]).strip().replace(' ','_')
+                if not title:
+                    self.chunks = []
+                else:
+                    self.numdoc += 1
+                    filename = 'doc{:02}-{}-{}.tex'.format(self.numdoc, tag, title[:15])
+                    if self.doc:
+                        self.doc.close()
+                    self.doc = open(os.path.join(self.resultdir, filename), 'w', encoding='utf-8')
+                    print(''.join(self.chunks[1]))
+                    self.filenames.append(filename)
+                    self.chunks.append('}\n')
+            else:
+                self.chunks.append('}\n')
+
+        elif tag == 'p':
+            self.chunks.append('\\\\\n')
+
+
+        elif tag in ('em', 'strong'):
+            self.chunks.append('}')
+
+        elif tag == 'fr':
+            self.ignoredata -= 1
+            if not self.footnote:
+                raise Exception('empty footnote')
+            self.chunks.append('\\footnote{{{}}}'.format(self.footnote))
+            self.footnote = None
+
+        elif tag == 'a':
+            self.ignoredata -= 1
+                    
+    def flush(self):
+        text = ''.join(self.chunks)
+        if self.doc:
+            self.doc.write(text)
+        elif text.strip():
+#            raise Exception("no open doc to flush {!r}".format(text))
+            warnings.warn("no open doc to flush {!r}".format(text))
+        self.chunks = []
+
+
+open('check.html','w').write(htmldoc)
+html2tex(htmldoc, footnotes, 'chapitres')
