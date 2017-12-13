@@ -66,18 +66,19 @@ def html2tex(htmldoc, footnotes, resultdir):
     h2t = Html2Tex(footnotes, autodir)
     h2t.feed(htmldoc)
     if footnotes:
-        raise Exception("unused footnote(s):\n{}".format("\n".join(footnotes.values())))
+        warnings.warn("unused footnote(s):\n{}".format("\n".join("{}:{}".format(k,v) for k,v in footnotes.items())))
     
     print()
     for filename in h2t.filenames:
         autofile = os.path.join(autodir, filename)
         modiffile = os.path.join(modifdir, filename)
         if os.path.exists(modiffile):
+            print()    
             print('\\input {}'.format(modiffile))
             print('%\\input {}'.format(autofile))
+            print()    
         else:
             print('\\input {}'.format(autofile))
-        print()    
 
 class Html2Tex(html.parser.HTMLParser):
     def __init__(self, footnotes, resultdir):
@@ -94,7 +95,7 @@ class Html2Tex(html.parser.HTMLParser):
         
     def handle_starttag(self, tag, attrs):
         currentlevel = None if not self.levels else self.levels[-1]
-        if (currentlevel in ('part', 'chapter', 'section') and tag != 'a') or\
+        if (currentlevel in ('part', 'chapter') and tag not in ('a', 'fr')) or\
            (currentlevel!='html' and tag in ('part', 'chapter', 'section')):
             raise Exception("unexpected tag <{}> in <{}>".format(tag, currentlevel))
 
@@ -106,10 +107,21 @@ class Html2Tex(html.parser.HTMLParser):
         elif tag in ('part', 'chapter', 'section', 'story'):
             if tag in ('part', 'chapter'):
                 self.flush()
+            if self.chunks and self.chunks[-1] == '\\\\\n':
+                self.chunks.pop()
             self.chunks.append('\\{}{{'.format(tag))
 
-        elif tag == 'p':
+        elif tag == 'br':
+            pass
+        
+        elif tag == 'p' or tag == 'ft':
             self.chunks.append('\\indent ')
+
+        elif tag == 'ul':
+            self.chunks.append('\\startitemize[2,packed,paragraph,intro]\n')
+
+        elif tag == 'li':
+            self.chunks.append('\\item ')
             
         elif tag == 'em':
             self.chunks.append('{\\em ')
@@ -150,7 +162,7 @@ class Html2Tex(html.parser.HTMLParser):
 
         elif tag in ('part', 'chapter', 'section', 'story'):
             if tag in ('part', 'chapter'):
-                title = ''.join(self.chunks[1:]).strip().replace(' ','_')
+                title = ''.join(self.chunks[1:]).strip().replace(' ','_').replace('"', '').replace('\\', '')
                 if not title:
                     self.chunks = []
                 else:
@@ -163,11 +175,31 @@ class Html2Tex(html.parser.HTMLParser):
                     self.filenames.append(filename)
                     self.chunks.append('}\n')
             else:
+                if self.chunks[-1] == '\\\\\n':
+                    self.chunks.pop()
                 self.chunks.append('}\n')
 
-        elif tag == 'p':
-            self.chunks.append('\\\\\n')
+        elif tag == 'br':
+            pass
 
+        elif tag == 'p' or tag == 'ft':
+            if self.chunks[-1] == '\\indent ':
+                self.chunks.pop()
+                text = ''.join(self.chunks).strip()
+                if text.endswith('\\\\'):#self.chunks and self.chunks[-1] == '\\\\\n':
+                    while self.chunks:
+                        chunk = self.chunks.pop()
+                        if chunk == '\\\\\n':
+                            break
+                    self.chunks.append('\n\n')
+            else:
+                self.chunks.append('\\\\\n')
+
+        elif tag == 'ul':
+            self.chunks.append('\\stopitemize\n')
+
+        elif tag == 'li':
+            self.chunks.append('\n')
 
         elif tag in ('em', 'strong'):
             self.chunks.append('}')
@@ -175,15 +207,16 @@ class Html2Tex(html.parser.HTMLParser):
         elif tag == 'fr':
             self.ignoredata -= 1
             if not self.footnote:
-                raise Exception('empty footnote')
-            self.chunks.append('\\footnote{{{}}}'.format(self.footnote))
+                warnings.warn('empty footnote ...{}*'.format(self.chunks[-1]))
+            else:
+                self.chunks.append('\\footnote{{{}}}'.format(self.footnote))
             self.footnote = None
 
         elif tag == 'a':
             self.ignoredata -= 1
                     
     def flush(self):
-        text = ''.join(self.chunks)
+        text = ''.join(self.chunks).replace('%', '\\%').replace('$', '\\$')
         if self.doc:
             self.doc.write(text)
         elif text.strip():
