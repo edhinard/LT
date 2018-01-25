@@ -5,19 +5,49 @@ profile={default_cmyk.icc,default_rgb.icc,default_gray.icc},
 intent=ISO coated v2 300\letterpercent\space (ECI)]
 
 % dimensions du papier
-\definepapersize[lulua5][width=148.1mm,height=209.9mm]
-\setuppapersize[lulua5][lulua5]
-\setuplayout[backspace=15mm, width=middle, topspace=20mm, header=0mm, height=175mm, footer=10mm]
+%\definepapersize[lulua5][width=148.1mm,height=209.9mm]
+%\setuppapersize[lulua5][lulua5]
+%\setuplayout[backspace=15mm, width=middle, topspace=20mm, header=0mm, height=175mm, footer=10mm]
 %\setuppapersize[lulua5][A4]
 %\setuplayout[location={middle,middle}]
 %\setuplayout[marking=on]
+\definepapersize[harmattan][width=155mm,height=240mm]
+\setuppapersize[harmattan][harmattan]
+\setuplayout[backspace=17.5mm, width=120mm, topspace=20mm, header=0mm, height=200mm]
+%, footer=10mm]
+
 
 % N° pages
 \setuppagenumbering[alternative=doublesided, location={footer,middle}]
 
+% alinea
+\setupindenting[yes,small]
+% + paramètre indentnext de \setuphead[chapter]
+\setupheads[indentnext=no]
+
+% corps et caractère
 \setupbodyfont[arial,11pt]
+
+% notes
+\setupnotation[footnote][
+way=bypage,
+numberconversion=numbers,
+alternative=text,
+ ]
+\setupnote [footnote] [
+% bodyfont=9pt,
+ background=color,
+ backgroundcolor=white,
+ backgroundoffset=3pt,
+% rule=on
+]
+
+
+\setupwhitespace [big]
 \mainlanguage[fr]
 \setcharacterspacing [frenchpunctuation]
+
+
 % headers and footers
 %\setupfooter[style=\it]
 %\setupfootertexts[\date\hfill \ConTeXt\ template]
@@ -32,6 +62,7 @@ intent=ISO coated v2 300\letterpercent\space (ECI)]
   page=partpagebreak,	
   after={\blank[none]},
   placehead=yes,
+  incrementnumber=yes,
   number=no,
   textstyle=\bfd,
   align=middle,
@@ -45,10 +76,11 @@ intent=ISO coated v2 300\letterpercent\space (ECI)]
   [yes,footer,right]
 \setuphead[chapter]
 [
-  page=chapterpagebreak,	
+  page=chapterpagebreak,
+  incrementnumber=yes,
   number=no,
   after={\blank[small]},
-  indentnext=yes,
+%  indentnext=no,
   textstyle=\bf
 ]
   
@@ -57,7 +89,7 @@ intent=ISO coated v2 300\letterpercent\space (ECI)]
 [
   style=\bfa,
   number=no,
-  indentnext=yes,
+ % indentnext=no,
   before={\blank[big]},
   after={\blank[none]},
 ]
@@ -75,21 +107,11 @@ intent=ISO coated v2 300\letterpercent\space (ECI)]
   frame=off
 ]
 
+% table des matières
+\setupcombinedlist[content][list={part,chapter}, alternative=c,]
+\setuplist[part][style=bold,pagenumber=no]
+\setuplist[chapter][]
 
-
-% alinea
-\setupindenting[yes,small]
-\setupwhitespace [big]
-
-
-        
-\setupnotation[footnote][way=bypage,numberconversion=set 2,location=footer,rule=on]
-\setupnote [footnote] [
-  background=color,
-  backgroundcolor=white,
-  backgroundoffset=3pt,
-  rule=on
-]
 
 %\setupsectionblock[frontpart][
 %number=no
@@ -159,7 +181,6 @@ intent=ISO coated v2 300\letterpercent\space (ECI)]
 \input chapitres/auto/doc32-chapter-Dimanche_soir_d.tex
 \input chapitres/auto/doc33-chapter-Epilogue.tex
 \input chapitres/auto/doc34-chapter-Bibliographie.tex
-
 \setuppagenumber[state=stop]
-\completecontent[criterium=previous,list={part,chapter},alternative=c]
+\completecontent[criterium=all]
 \stoptext
