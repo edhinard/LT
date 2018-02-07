@@ -26,7 +26,8 @@ intent=ISO coated v2 300\letterpercent\space (ECI)]
 \setupheads[indentnext=no]
 
 % corps et caractère
-\setupbodyfont[arial,11pt]
+%\setupbodyfont[arial,11pt]
+\setupbodyfont[times,11pt]
 
 % notes
 \setupnotation[footnote][
@@ -70,6 +71,11 @@ alternative=text,
   footer=empty,
 ]
 
+%à essayer :
+% \setuphead[chapter][align={flushleft, nothyphenated, verytolerant}]
+% \setbreakpoints[compound]
+
+
 
 % chapitres
 \definepagebreak[chapterpagebreak]
@@ -80,19 +86,21 @@ alternative=text,
   incrementnumber=yes,
   number=no,
   after={\blank[small]},
-%  indentnext=no,
+%  indentnext=yes,
   textstyle=\bf
 ]
-  
+
 % sections (sous-chapitres)
 \setuphead[section]
 [
   style=\bfa,
   number=no,
- % indentnext=no,
+%  indentnext=yes,
   before={\blank[big]},
   after={\blank[none]},
 ]
+
+% emphase
 \setupbodyfontenvironment[default][em=italic]
 
 % récits
@@ -136,51 +144,50 @@ alternative=text,
 
 \setuppagenumber[state=start]
  \setcounter[userpage][1]
+ 
+ \input chapitres/auto/doc01-.tex
+\input chapitres/auto/doc02-Remerciements.tex
+\input chapitres/auto/doc03-.tex
+\input chapitres/auto/doc04-Précisions.tex
+\input chapitres/auto/doc05-Réflexions_sur.tex
+\input chapitres/auto/doc06-Années_de_prati.tex
+\input chapitres/auto/doc07-Etre_et_ne_plus.tex
+\input chapitres/auto/doc08-Médecin_Accouch.tex
+\input chapitres/auto/doc09-Pourquoi.tex
+\input chapitres/auto/doc10-Féminin.tex
+\input chapitres/auto/doc11-Le_labyrinthe.tex
+\input chapitres/auto/doc12-Femme_et_homme.tex
+\input chapitres/auto/doc13-Ambivalence_vis.tex
+\input chapitres/auto/doc14-Les_consultesfo.tex
+\input chapitres/auto/doc15-En_pratique.tex
+\input chapitres/auto/doc16-Médecin_et_pati.tex
+\input chapitres/auto/doc17-Début_et_fin_d'.tex
+\input chapitres/auto/doc18-Stérilité.tex
+\input chapitres/auto/doc19-Le_statut_statu.tex
+\input chapitres/auto/doc20-Les_Mots.tex
+\input chapitres/auto/doc21-Sexualité_et_gr.tex
+\input chapitres/auto/doc22-Pluriel.tex
+\input chapitres/auto/doc23-La_grossesse_un.tex
+\input chapitres/auto/doc24-La_naissance.tex
+\input chapitres/auto/doc25-Femme_Mère_Homm.tex
+\input chapitres/auto/doc26-Les_nouveaunés.tex
+\input chapitres/auto/doc27-La_grossesse_ic.tex
+\input chapitres/auto/doc28-Evolution_récen.tex
+\input chapitres/auto/doc29-Dangerosités.tex
+\input chapitres/auto/doc30-Grossesses_mult.tex
+\input chapitres/auto/doc31-Dystociefootnot.tex
+\input chapitres/auto/doc32-Autour_de_la_do.tex
+\input chapitres/auto/doc33-Les_douleurs_de.tex
+\input chapitres/auto/doc34-La_vie_d’un_ser.tex
+\input chapitres/auto/doc35-Allaitement.tex
+\input chapitres/auto/doc36-Dimanche_soir_d.tex
+\input chapitres/auto/doc37-Epilogue.tex
+\input chapitres/auto/doc38-Bibliographie.tex
 
 
-\input chapitres/modif/doc01-chapter-Remerciements.tex
-\input chapitres/auto/doc02-chapter-Précisions.tex
 
-\part{Réflexions sur nos métiers}
 
-\input chapitres/auto/doc03-chapter-Années_de_prati.tex
-\input chapitres/auto/doc04-chapter-Etre_et_ne_plus.tex
-\input chapitres/auto/doc05-chapter-Médecin,_Accouc.tex
-\input chapitres/auto/doc06-chapter-Pourquoi_choisi.tex
 
-\part{Féminin}
-
-\input chapitres/auto/doc07-chapter-Le_labyrinthe.tex
-\input chapitres/auto/doc08-chapter-Femme_et_homme..tex
-\input chapitres/auto/doc09-chapter-Ambivalence_vis.tex
-\input chapitres/auto/doc10-chapter-Les_consultesfo.tex
-\input chapitres/auto/doc11-chapter-En_pratique.tex
-\input chapitres/auto/doc12-chapter-Médecin_et_pati.tex
-\input chapitres/auto/doc13-chapter-Début_et_fin_d'.tex
-\input chapitres/auto/doc14-chapter-Stérilité.tex
-\input chapitres/auto/doc15-chapter-Le_statut_(stat.tex
-\input chapitres/auto/doc16-chapter-Les_Mots.tex
-\input chapitres/auto/doc17-chapter-Sexualité_et_gr.tex
-
-\part{Pluriel\\Mère et enfant}
-
-\input chapitres/auto/doc18-chapter-La_grossesse,_u.tex
-\input chapitres/auto/doc19-chapter-La_naissance.tex
-\input chapitres/auto/doc20-chapter-Femme_-_Mère__H.tex
-\input chapitres/auto/doc21-chapter-Parents.tex
-\input chapitres/auto/doc22-chapter-Les_nouveau-nés.tex
-\input chapitres/auto/doc23-chapter-La_grossesse_ic.tex
-\input chapitres/auto/doc24-chapter-Evolution_récen.tex
-\input chapitres/auto/doc25-chapter-Dangerosités.tex
-\input chapitres/auto/doc26-chapter-Grossesses_mult.tex
-\input chapitres/auto/doc27-chapter-Dystocie,_mot_b.tex
-\input chapitres/auto/doc28-chapter-Autour_de_la_do.tex
-\input chapitres/auto/doc29-chapter-Les_douleurs_de.tex
-\input chapitres/auto/doc30-chapter-La_vie_d’un_ser.tex
-\input chapitres/auto/doc31-chapter-Allaitement.tex
-\input chapitres/auto/doc32-chapter-Dimanche_soir_d.tex
-\input chapitres/auto/doc33-chapter-Epilogue.tex
-\input chapitres/auto/doc34-chapter-Bibliographie.tex
 \setuppagenumber[state=stop]
 \completecontent[criterium=all]
 \stoptext

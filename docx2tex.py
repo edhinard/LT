@@ -24,10 +24,12 @@ import mammoth
 
 
 # ====== docx to html ======
+#p[style-name='Subtitle'] => subtitle:fresh
 style_map = """
+p[style-name='Partie'] => part:fresh
 p[style-name='Heading 1'] => chapter:fresh
 p[style-name='Heading 2'] => section:fresh
-p[style-name='Récit'] => story > p:fresh
+p[style-name='récit'] => story > p:fresh
 
 p[style-name='footnote text'] => ft
 r[style-name='footnote reference'] => fr
@@ -80,6 +82,17 @@ def html2tex(htmldoc, footnotes, resultdir):
         else:
             print('\\input {}'.format(autofile))
 
+#\startpart[title={Pluriel\\Mère et enfant},list={Pluriel}]
+#\startchapter[title={Etre et ne plus être\\\tfx \it La vie - après la vie - avant la vie},list={Etre et ne plus être}]
+
+#<chapter><a id="_Toc503980580"></a>Etre et ne plus être</chapter>
+#<subtitle1>La vie - après la vie - avant la vie</subtitle1>
+#<p></p>
+#<p>Depuis ...</p>
+#<p>Le ...</p>
+#<p><em>- Les ...</em></p>
+
+            
 class Html2Tex(html.parser.HTMLParser):
     def __init__(self, footnotes, resultdir):
         html.parser.HTMLParser.__init__(self)
@@ -88,10 +101,11 @@ class Html2Tex(html.parser.HTMLParser):
         self.resultdir = resultdir
         self.levels = []
         self.chunks = []
+        self.previous = None
         self.ignoredata = 0
         self.filenames = []
-        self.doc = None
         self.numdoc = 0
+        self.title = ''
         
     def handle_starttag(self, tag, attrs):
         currentlevel = None if not self.levels else self.levels[-1]
@@ -104,9 +118,19 @@ class Html2Tex(html.parser.HTMLParser):
         if tag == 'html':
             pass
         
-        elif tag in ('part', 'chapter', 'section', 'story'):
-            if tag in ('part', 'chapter'):
+        elif tag == 'part':
+            if self.previous == 'part':
+                self.chunks.pop()
+                self.chunks.append('\\\\')
+            else:
                 self.flush()
+                self.chunks.append('\\part{')
+
+        elif tag == 'chapter':
+            self.flush()
+            self.chunks.append('\\startchapter[list={')
+
+        elif tag in ('section', 'story'):
             if self.chunks and self.chunks[-1] == '\\\\\n':
                 self.chunks.pop()
             self.chunks.append('\\{}{{'.format(tag))
@@ -129,6 +153,9 @@ class Html2Tex(html.parser.HTMLParser):
         elif tag == 'strong':
             self.chunks.append('{\\bf ')
 
+        elif tag == 'sup':
+            self.chunks.append('{\\high ')
+
         elif tag == 'fr':
             self.ignoredata += 1
             
@@ -141,8 +168,6 @@ class Html2Tex(html.parser.HTMLParser):
                 except:
                     raise Exception("missing note number {} in footnotes".format(notenum))
 
-        elif tag == 'sup':
-            pass
         
         else:
             raise Exception("unexpected tag <{}>".format(tag))
@@ -152,32 +177,25 @@ class Html2Tex(html.parser.HTMLParser):
             self.chunks.append(data)
 
     def handle_endtag(self, tag):
-        self.levels.pop()
+        self.previous = self.levels.pop()
         
         if tag == 'html':
             self.flush()
-            if self.doc:
-                self.doc.close()
-                self.doc = None
 
-        elif tag in ('part', 'chapter', 'section', 'story'):
-            if tag in ('part', 'chapter'):
-                title = ''.join(self.chunks[1:]).strip().replace(' ','_').replace('"', '').replace('\\', '')
-                if not title:
-                    self.chunks = []
-                else:
-                    self.numdoc += 1
-                    filename = 'doc{:02}-{}-{}.tex'.format(self.numdoc, tag, title[:15])
-                    if self.doc:
-                        self.doc.close()
-                    self.doc = open(os.path.join(self.resultdir, filename), 'w', encoding='utf-8')
-                    print(''.join(self.chunks[1]))
-                    self.filenames.append(filename)
-                    self.chunks.append('}\n')
-            else:
-                if self.chunks[-1] == '\\\\\n':
-                    self.chunks.pop()
-                self.chunks.append('}\n')
+        elif tag == 'part':
+            if not self.title:
+                self.title = ''.join(self.chunks[1:])
+            self.chunks.append('}\n')
+
+        elif tag == 'chapter':
+            self.title = ''.join(self.chunks[1:])
+            #title={Etre et ne plus être\\\tfx \it La vie - après la vie - avant la vie},list={Etre et ne plus être}]
+            self.chunks.append('}},title={{{0}}}]\n'.format(self.title))
+
+        elif tag in ('section', 'story'):
+            if self.chunks[-1] == '\\\\\n':
+                self.chunks.pop()
+            self.chunks.append('}\n')
 
         elif tag == 'br':
             pass
@@ -201,8 +219,11 @@ class Html2Tex(html.parser.HTMLParser):
         elif tag == 'li':
             self.chunks.append('\n')
 
-        elif tag in ('em', 'strong'):
-            self.chunks.append('}')
+        elif tag in ('em', 'strong', 'sup'):
+            if self.chunks[-1].startswith('{\\'):
+                self.chunks.pop()
+            else:
+                self.chunks.append('}')
 
         elif tag == 'fr':
             self.ignoredata -= 1
@@ -216,13 +237,17 @@ class Html2Tex(html.parser.HTMLParser):
             self.ignoredata -= 1
                     
     def flush(self):
+        self.numdoc += 1
+        print(self.numdoc, self.title)
+        name = '_'.join(self.title.translate(str.maketrans('', '', ',./-"\\(){}?')).split())
+        filename = 'doc{:02}-{}.tex'.format(self.numdoc, name[:15].strip('_'))
+        doc = open(os.path.join(self.resultdir, filename), 'w', encoding='utf-8')
         text = ''.join(self.chunks).replace('%', '\\%').replace('$', '\\$')
-        if self.doc:
-            self.doc.write(text)
-        elif text.strip():
-#            raise Exception("no open doc to flush {!r}".format(text))
-            warnings.warn("no open doc to flush {!r}".format(text))
+        doc.write(text)
+        doc.close()
+        self.filenames.append(filename)
         self.chunks = []
+        self.title = ''
 
 
 open('check.html','w').write(htmldoc)
