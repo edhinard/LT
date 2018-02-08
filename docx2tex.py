@@ -24,11 +24,12 @@ import mammoth
 
 
 # ====== docx to html ======
-#p[style-name='Subtitle'] => subtitle:fresh
 style_map = """
 p[style-name='Partie'] => part:fresh
 p[style-name='Heading 1'] => chapter:fresh
+p[style-name='Subtitle'] => chaptercont:fresh
 p[style-name='Heading 2'] => section:fresh
+p[style-name='SousTitre2'] => sectioncont:fresh
 p[style-name='récit'] => story > p:fresh
 
 p[style-name='footnote text'] => ft
@@ -130,10 +131,22 @@ class Html2Tex(html.parser.HTMLParser):
             self.flush()
             self.chunks.append('\\startchapter[list={')
 
+        elif tag == 'chaptercont':
+            if self.previous != 'chapter':
+                raise Exception("unexpected tag chaptercont after <{}>".format(self.previous))
+            self.chunks[-1] = self.chunks[-1][:-3]
+            self.chunks.append(r'\\\tfx \it ')
+
         elif tag in ('section', 'story'):
             if self.chunks and self.chunks[-1] == '\\\\\n':
                 self.chunks.pop()
             self.chunks.append('\\{}{{'.format(tag))
+
+        elif tag == 'sectioncont':
+            if self.previous != 'section':
+                raise Exception("unexpected tag sectioncont after <{}>".format(self.previous))
+            self.chunks.pop()
+            self.chunks.append(r'\\\tfx \it ')
 
         elif tag == 'br':
             pass
@@ -191,10 +204,16 @@ class Html2Tex(html.parser.HTMLParser):
             self.title = ''.join(self.chunks[1:])
             #title={Etre et ne plus être\\\tfx \it La vie - après la vie - avant la vie},list={Etre et ne plus être}]
             self.chunks.append('}},title={{{0}}}]\n'.format(self.title))
+            
+        elif tag == 'chaptercont':
+            self.chunks.append('}]\n')
 
         elif tag in ('section', 'story'):
             if self.chunks[-1] == '\\\\\n':
                 self.chunks.pop()
+            self.chunks.append('}\n')
+            
+        elif tag == 'sectioncont':
             self.chunks.append('}\n')
 
         elif tag == 'br':
