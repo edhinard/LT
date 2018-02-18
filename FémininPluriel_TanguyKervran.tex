@@ -13,7 +13,7 @@ intent=ISO coated v2 300\letterpercent\space (ECI)]
 %\setuplayout[marking=on]
 \definepapersize[harmattan][width=155mm,height=240mm]
 \setuppapersize[harmattan][harmattan]
-\setuplayout[backspace=17.5mm, width=120mm, topspace=20mm, header=0mm, height=200mm]
+\setuplayout[backspace=27.5mm, width=100mm, topspace=30mm, header=0mm, footer=10mm, height=180mm]
 %, footer=10mm]
 
 
@@ -26,8 +26,11 @@ intent=ISO coated v2 300\letterpercent\space (ECI)]
 \setupheads[indentnext=no]
 
 % corps et caractère
-%\setupbodyfont[arial,12pt]
-\setupbodyfont[times,12pt]
+\setupbodyfont[times,11pt]
+\definebodyfontenvironment [11pt] [x=10pt]
+\definebodyfontenvironment [11pt] [a=12pt]
+\definebodyfontenvironment [11pt] [b=14pt]
+\definebodyfontenvironment [11pt] [c=20pt]
 
 % notes
 \setupnotation[footnote][
@@ -36,7 +39,7 @@ numberconversion=numbers,
 alternative=text,
  ]
 \setupnote [footnote] [
-% bodyfont=9pt,
+ bodyfont=10pt,
  background=color,
  backgroundcolor=white,
  backgroundoffset=3pt,
@@ -44,9 +47,9 @@ alternative=text,
 ]
 
 
-\setupwhitespace [big]
 \mainlanguage[fr]
 \setcharacterspacing [frenchpunctuation]
+\setbreakpoints[compound]
 
 
 % headers and footers
@@ -65,7 +68,7 @@ alternative=text,
   placehead=yes,
   incrementnumber=yes,
   number=no,
-  textstyle=\bfd,
+  textstyle=\bfc,
   align=middle,
   alternative=middle,
   footer=empty,
@@ -73,7 +76,7 @@ alternative=text,
 
 %à essayer :
 % \setuphead[chapter][align={flushleft, nothyphenated, verytolerant}]
-% \setbreakpoints[compound]
+
 
 
 
@@ -85,9 +88,11 @@ alternative=text,
   page=chapterpagebreak,
   incrementnumber=yes,
   number=no,
-  after={\blank[small]},
+  after={\blank[3*big]},
 %  indentnext=yes,
-  textstyle=\bf
+  textstyle=\bfb,
+  textcommand=\midaligned,
+  footer=empty,
 ]
 
 % sections (sous-chapitres)
@@ -96,8 +101,8 @@ alternative=text,
   style=\bfa,
   number=no,
 %  indentnext=yes,
-  before={\blank[big]},
-  after={\blank[none]},
+  before={\blank[3*big]},
+  after={\blank[big]},
 ]
 
 % emphase
@@ -134,14 +139,34 @@ alternative=text,
 
 % Le contenu du bouquin
 \starttext
- 
 \setuppagenumber[state=stop]
 \startfrontmatter
+
+% Faux Titre
+\dontleavehmode
+\blank[6cm]
+\startalignment[center]
+{\switchtobodyfont[34pt] Féminin Pluriel \par}
+\stopalignment
+\page[odd]
+
+% Titre
+\dontleavehmode
+\blank[6cm]
+\startalignment[center]
+{\switchtobodyfont[34pt] Féminin Pluriel \par}
+\blank[1cm]
+{\switchtobodyfont[16pt] Mémoires et réflexions d'un \\ médecin-accoucheur-gynécologue \\ ordinaire \par }
+\blank[7cm]
+{\switchtobodyfont[14pt] Docteur Tanguy Kervran \\ Contre-chants Docteur Marie-Hélène Ferrier \par}
+\stopalignment
+\page[odd]
+
+\noindent
 \input chapitres/auto/doc01-.tex
 \stopfrontmatter
 \setuppagenumber[state=start]
  \setcounter[userpage][1]
-
 
 \input chapitres/auto/doc02-Remerciements.tex
 \input chapitres/auto/doc03-Précisions.tex
@@ -149,7 +174,7 @@ alternative=text,
 \input chapitres/auto/doc05-Années_de_prati.tex
 \input chapitres/auto/doc06-Etre_et_ne_plus.tex
 \input chapitres/auto/doc07-Médecin_Accouch.tex
-\input chapitres/auto/doc08-Pourquoi.tex
+\input chapitres/auto/doc08-Pourquoi_choisi.tex
 \input chapitres/auto/doc09-Féminin.tex
 \input chapitres/auto/doc10-Le_labyrinthe.tex
 \input chapitres/auto/doc11-Femme_et_homme.tex
@@ -158,27 +183,29 @@ alternative=text,
 \input chapitres/auto/doc14-En_pratique.tex
 \input chapitres/auto/doc15-Médecin_et_pati.tex
 \input chapitres/auto/doc16-Début_et_fin_d'.tex
-\input chapitres/auto/doc17-Stérilité.tex
-\input chapitres/auto/doc18-Le_statut_statu.tex
-\input chapitres/auto/doc19-Les_Mots.tex
-\input chapitres/auto/doc20-Sexualité_et_gr.tex
-\input chapitres/auto/doc21-Pluriel.tex
-\input chapitres/auto/doc22-La_grossesse_un.tex
-\input chapitres/auto/doc23-La_naissance.tex
-\input chapitres/auto/doc24-Femme_Mère_Homm.tex
-\input chapitres/auto/doc25-Les_nouveaunés.tex
-\input chapitres/auto/doc26-La_grossesse_ic.tex
-\input chapitres/auto/doc27-Evolution_récen.tex
-\input chapitres/auto/doc28-Dangerosités.tex
-\input chapitres/auto/doc29-Grossesses_mult.tex
-\input chapitres/auto/doc30-Dystociefootnot.tex
-\input chapitres/auto/doc31-Autour_de_la_do.tex
-\input chapitres/auto/doc32-Les_douleurs_de.tex
-\input chapitres/auto/doc33-La_vie_d’un_ser.tex
-\input chapitres/auto/doc34-Allaitement.tex
-\input chapitres/auto/doc35-Dimanche_soir_d.tex
-\input chapitres/auto/doc36-Epilogue.tex
-\input chapitres/auto/doc37-Bibliographie.tex
+\input chapitres/auto/doc17-L'immense_march.tex
+\input chapitres/auto/doc18-Stérilité.tex
+\input chapitres/auto/doc19-Le_statut_statu.tex
+\input chapitres/auto/doc20-Les_Mots.tex
+\input chapitres/auto/doc21-Sexualité_et_gr.tex
+\input chapitres/auto/doc22-Pluriel.tex
+\input chapitres/auto/doc23-La_grossesse_un.tex
+\input chapitres/auto/doc24-La_naissance.tex
+\input chapitres/auto/doc25-Femme_Mère_Homm.tex
+\input chapitres/auto/doc26-Les_nouveaunés.tex
+\input chapitres/auto/doc27-La_grossesse_ic.tex
+\input chapitres/auto/doc28-Evolution_récen.tex
+\input chapitres/auto/doc29-Dangerosités.tex
+\input chapitres/auto/doc30-Grossesses_mult.tex
+\input chapitres/auto/doc31-Dystociefootnot.tex
+\input chapitres/auto/doc32-Autour_de_la_do.tex
+\input chapitres/auto/doc33-Les_douleurs_de.tex
+\input chapitres/auto/doc34-La_vie_d’un_ser.tex
+\input chapitres/auto/doc35-Allaitement.tex
+\input chapitres/auto/doc36-Dimanche_soir_d.tex
+\input chapitres/auto/doc37-Epilogue.tex
+\input chapitres/auto/doc38-Bibliographie.tex
+
 
 
 

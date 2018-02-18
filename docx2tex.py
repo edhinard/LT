@@ -54,7 +54,7 @@ else:
     for li in tree.findall('.//li'):
         num = li.attrib['id'][len('footnote-'):]
         note = ''.join(li.itertext()).strip('* ↑\n')
-        footnotes[num] = note
+        footnotes[num] = note.lstrip('*0123456789 \t')
 htmldoc = '<html>{}</html>'.format(doc)
 
 
@@ -137,10 +137,10 @@ class Html2Tex(html.parser.HTMLParser):
             self.chunks[-1] = self.chunks[-1][:-3]
             self.chunks.append(r'\\\tfx \it ')
 
-        elif tag in ('section', 'story'):
+        elif tag == 'section':
             if self.chunks and self.chunks[-1] == '\\\\\n':
                 self.chunks.pop()
-            self.chunks.append('\\{}{{'.format(tag))
+            self.chunks.append('\\section{')
 
         elif tag == 'sectioncont':
             if self.previous != 'section':
@@ -148,11 +148,17 @@ class Html2Tex(html.parser.HTMLParser):
             self.chunks.pop()
             self.chunks.append(r'\\\tfx \it ')
 
+        elif tag == 'story':
+            if self.chunks and self.chunks[-1] == '\\\\\n':
+                self.chunks.pop()
+            self.chunks.append('\\story{\\noindent ')
+
         elif tag == 'br':
             pass
         
         elif tag == 'p' or tag == 'ft':
-            self.chunks.append('\\indent ')
+#            self.chunks.append('\\indent ')
+            pass
 
         elif tag == 'ul':
             self.chunks.append('\\startitemize[2,packed,paragraph,intro]\n')
@@ -186,7 +192,10 @@ class Html2Tex(html.parser.HTMLParser):
             raise Exception("unexpected tag <{}>".format(tag))
 
     def handle_data(self, data):
+        assert self.ignoredata >= 0
         if not self.ignoredata:
+            if data.startswith(' ') and self.chunks[-1].startswith('{\\'):
+                self.chunks[-1] = ' ' + self.chunks[-1]
             self.chunks.append(data)
 
     def handle_endtag(self, tag):
@@ -220,16 +229,16 @@ class Html2Tex(html.parser.HTMLParser):
             pass
 
         elif tag == 'p' or tag == 'ft':
-            if self.chunks[-1] == '\\indent ':
-                self.chunks.pop()
-                text = ''.join(self.chunks).strip()
-                if text.endswith('\\\\'):#self.chunks and self.chunks[-1] == '\\\\\n':
-                    while self.chunks:
-                        chunk = self.chunks.pop()
-                        if chunk == '\\\\\n':
-                            break
-                    self.chunks.append('\n\n')
-            else:
+#            if self.chunks[-1] == '\\indent ':
+#                self.chunks.pop()
+#                text = ''.join(self.chunks).strip()
+#                if text.endswith('\\\\'):#self.chunks and self.chunks[-1] == '\\\\\n':
+#                    while self.chunks:
+#                        chunk = self.chunks.pop()
+#                        if chunk == '\\\\\n':
+#                            break
+#                    self.chunks.append('\n\n')
+#            else:
                 self.chunks.append('\\\\\n')
 
         elif tag == 'ul':
@@ -247,7 +256,7 @@ class Html2Tex(html.parser.HTMLParser):
         elif tag == 'fr':
             self.ignoredata -= 1
             if not self.footnote:
-                warnings.warn('empty footnote ...{}*'.format(self.chunks[-1]))
+                warnings.warn('empty footnote ...{}*'.format(self.chunks[-5:-1]))
             else:
                 self.chunks.append('\\footnote{{{}}}'.format(self.footnote))
             self.footnote = None
