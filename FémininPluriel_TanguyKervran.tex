@@ -11,22 +11,22 @@ intent=ISO coated v2 300\letterpercent\space (ECI)]
 %\setuppapersize[lulua5][A4]
 %\setuplayout[location={middle,middle}]
 %\setuplayout[marking=on]
-\definepapersize[harmattan][width=155mm,height=240mm]
+\definepapersize[harmattan][width=135mm,height=215mm]
 \setuppapersize[harmattan][harmattan]
-\setuplayout[backspace=27.5mm, width=100mm, topspace=30mm, header=0mm, footer=10mm, height=180mm]
-%, footer=10mm]
+\setuplayout[backspace=17.5mm, width=100mm, topspace=17.5mm, header=0mm, footer=10mm, height=185mm]
 
 
 % N° pages
 \setuppagenumbering[alternative=doublesided, location={footer,middle}]
 
 % alinea
-\setupindenting[yes,small]
+\setupindenting[no]
 % + paramètre indentnext de \setuphead[chapter]
 \setupheads[indentnext=no]
 
 % corps et caractère
 \setupbodyfont[times,11pt]
+\definebodyfontenvironment [11pt] [xx=8pt]
 \definebodyfontenvironment [11pt] [x=10pt]
 \definebodyfontenvironment [11pt] [a=12pt]
 \definebodyfontenvironment [11pt] [b=14pt]
@@ -49,8 +49,77 @@ alternative=text,
 
 \mainlanguage[fr]
 \setcharacterspacing [frenchpunctuation]
-\setbreakpoints[compound]
 
+% césures
+\setbreakpoints[compound]
+\hyphenation{
+triom-phe
+quel-ques
+guet-te
+con-tex-tes
+fem-mes
+bril-lan-tes
+com-me
+d'a-bord
+heu-re
+con-nais-sent
+pau-vres
+deu-xiè-me
+cons-trui-re
+peu-vent
+s’a-jou-te
+cour-be
+con-dui-sait
+gra-ves
+jeu-nes
+con-trai-re
+d’a-nor-mal
+con-fron-tés
+con-ser-vé
+gran-de
+ail-leurs
+se-xuel-les
+fran-ce
+sa-ges
+cel-le
+fem-me
+con-sul-ta-tions
+cons-trui-sant
+l’au-tre
+au-tre
+réu-nions
+re-con-nais-sent
+quel-que
+l’é-rec-tion
+l’a-dres-ser
+en-tre
+con-fré-rie
+soi-gnent
+con-joint
+re-pro-chent
+fai-tes
+ap-par-tien-nent
+veil-ler
+fu-rent
+sub-stan-ces
+rè-gles
+con-cer-ne
+l’é-po-que
+é-po-que
+con-sul-ta-tion
+chro-ni-ques
+mon-de
+moyen-ne
+bien-veil-lants
+vas-tes
+suè-de
+é-veil-lent
+diaph-rag-me
+con-join-te
+con-tex-te
+sui-tes
+
+}
 
 % headers and footers
 %\setupfooter[style=\it]
@@ -88,6 +157,7 @@ alternative=text,
   page=chapterpagebreak,
   incrementnumber=yes,
   number=no,
+  before={\blank[2*big]},
   after={\blank[3*big]},
 %  indentnext=yes,
   textstyle=\bfb,
@@ -101,8 +171,8 @@ alternative=text,
   style=\bfa,
   number=no,
 %  indentnext=yes,
-  before={\blank[3*big]},
-  after={\blank[big]},
+  before={\blank[2*big]},
+  after={\blank[1mm]},
 ]
 
 % emphase
@@ -166,7 +236,7 @@ alternative=text,
 \input chapitres/auto/doc01-.tex
 \stopfrontmatter
 \setuppagenumber[state=start]
- \setcounter[userpage][1]
+ \setcounter[userpage][7]
 
 \input chapitres/auto/doc02-Remerciements.tex
 \input chapitres/auto/doc03-Précisions.tex
@@ -176,7 +246,10 @@ alternative=text,
 \input chapitres/auto/doc07-Médecin_Accouch.tex
 \input chapitres/auto/doc08-Pourquoi_choisi.tex
 \input chapitres/auto/doc09-Féminin.tex
-\input chapitres/auto/doc10-Le_labyrinthe.tex
+
+\input chapitres/modif/doc10-Le_labyrinthe.tex
+%\input chapitres/auto/doc10-Le_labyrinthe.tex
+
 \input chapitres/auto/doc11-Femme_et_homme.tex
 \input chapitres/auto/doc12-Ambivalence_vis.tex
 \input chapitres/auto/doc13-Les_consultesfo.tex
@@ -187,7 +260,10 @@ alternative=text,
 \input chapitres/auto/doc18-Stérilité.tex
 \input chapitres/auto/doc19-Le_statut_statu.tex
 \input chapitres/auto/doc20-Les_Mots.tex
-\input chapitres/auto/doc21-Sexualité_et_gr.tex
+
+\input chapitres/modif/doc21-Sexualité_et_gr.tex
+%\input chapitres/auto/doc21-Sexualité_et_gr.tex
+
 \input chapitres/auto/doc22-Pluriel.tex
 \input chapitres/auto/doc23-La_grossesse_un.tex
 \input chapitres/auto/doc24-La_naissance.tex
@@ -205,7 +281,6 @@ alternative=text,
 \input chapitres/auto/doc36-Dimanche_soir_d.tex
 \input chapitres/auto/doc37-Epilogue.tex
 \input chapitres/auto/doc38-Bibliographie.tex
-
 
 
 

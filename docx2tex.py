@@ -32,9 +32,9 @@ p[style-name='Heading 2'] => section:fresh
 p[style-name='SousTitre2'] => sectioncont:fresh
 p[style-name='récit'] => story > p:fresh
 
-p[style-name='footnote text'] => ft
 r[style-name='footnote reference'] => fr
 """
+#p[style-name='footnote text'] => ft
 
 with open(sys.argv[1], 'rb') as docx_file:
     result = mammoth.convert_to_html(docx_file, style_map=style_map, ignore_empty_paragraphs=False)
@@ -156,8 +156,19 @@ class Html2Tex(html.parser.HTMLParser):
         elif tag == 'br':
             pass
         
-        elif tag == 'p' or tag == 'ft':
+        elif tag == 'p':
+            if self.previous == 'p':
+                text = ''.join(self.chunks).strip()
+                if text.endswith('\\crlf'):
+                    while not self.chunks.pop().startswith('\\crlf'):
+                        pass
+                    self.chunks.append('\n\\blank[4mm]\n')
+                else:
+                    self.chunks.append('\\crlf\n')
 #            self.chunks.append('\\indent ')
+            pass
+        
+        elif tag == 'ft':
             pass
 
         elif tag == 'ul':
@@ -229,17 +240,18 @@ class Html2Tex(html.parser.HTMLParser):
             pass
 
         elif tag == 'p' or tag == 'ft':
-#            if self.chunks[-1] == '\\indent ':
-#                self.chunks.pop()
-#                text = ''.join(self.chunks).strip()
-#                if text.endswith('\\\\'):#self.chunks and self.chunks[-1] == '\\\\\n':
-#                    while self.chunks:
-#                        chunk = self.chunks.pop()
-#                        if chunk == '\\\\\n':
-#                            break
-#                    self.chunks.append('\n\n')
-#            else:
-                self.chunks.append('\\\\\n')
+##            if self.chunks[-1] == '\\indent ':
+##                self.chunks.pop()
+##                text = ''.join(self.chunks).strip()
+##                if text.endswith('\\\\'):#self.chunks and self.chunks[-1] == '\\\\\n':
+##                    while self.chunks:
+##                        chunk = self.chunks.pop()
+##                        if chunk == '\\\\\n':
+##                            break
+##                    self.chunks.append('\n\n')
+##            else:
+#                self.chunks.append('\\\\\n')
+            pass
 
         elif tag == 'ul':
             self.chunks.append('\\stopitemize\n')
@@ -270,7 +282,7 @@ class Html2Tex(html.parser.HTMLParser):
         name = '_'.join(self.title.translate(str.maketrans('', '', ',./-"\\(){}?')).split())
         filename = 'doc{:02}-{}.tex'.format(self.numdoc, name[:15].strip('_'))
         doc = open(os.path.join(self.resultdir, filename), 'w', encoding='utf-8')
-        text = ''.join(self.chunks).replace('%', '\\%').replace('$', '\\$')
+        text = ''.join(self.chunks).replace('%', '\\%').replace('$', '\\$').rstrip("\\\n")
         doc.write(text)
         doc.close()
         self.filenames.append(filename)
